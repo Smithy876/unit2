@@ -19,7 +19,7 @@ function createMap(){
     }).addTo(map);
 
     //call getData function
-    getData();
+    getData(map);
 };
 
 function onEachFeature(feature, layer) {
@@ -36,15 +36,36 @@ function onEachFeature(feature, layer) {
 
 //function to retrieve the data and place it on the map
 function getData(map){
-    //load the data
-    $.getJSON("data/megacities.geojson", function(response){
-        //create a Leaflet GeoJSON layer and add it to the map
-        L.geoJson(response, {
-            onEachFeature: onEachFeature
-        }).addTo(map);
-    });
+	//load the data
+	$.ajax("data/megacities.geojson", {
+		dataType: "json",
+		success: function(response){
+			//create a L.markerClusterGroup layer
+			var markers = L.markerClusterGroup();
+
+			//create marker options
+			var geojsonMarkerOptions = {
+				radius: 8,
+				fillColor: "#ff7800",
+				color: "#000",
+				weight: 1,
+				opacity: 1,
+				fillOpacity: 0.8
+			};
+
+			//create a Leaflet GeoJSON layer and add it to the map
+			var geoJsonLayer = L.geoJson(response, {
+				pointToLayer: function (feature, latlng) {
+						return L.circleMarker(latlng, geojsonMarkerOptions);
+					}
+			});
+
+			//add geojson to marker cluster layer
+			markers.addLayer(geoJsonLayer);
+			//add marker cluster layer to map
+			map.addLayer(markers);
+		}
+	});
 };
-
-
 
 $(document).ready(createMap);
