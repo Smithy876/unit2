@@ -19,7 +19,11 @@ function createMap(){
 	//create the map
 	map = L.map('mapid', {
 		center: [53, -95],
-		zoom: 4
+		zoom: 4,
+		minZoom: 4,
+		maxZoom: 5,
+		dragging: false,
+		//maxBounds: L.latLngBounds()
 	});
 
 	//add OSM base tilelayer
@@ -79,68 +83,109 @@ function calcPropRadius(attValue) {
     return radius;
 };
 
-//function to add circle markers for point features
-function createPropSymbols(data){
+//function to convert markers to circle markers
+function pointToLayer(feature, latlng){
+    //Determine which attribute to visualize with proportional symbols
+    var attribute = "1901";
 
-		var attribute = "1901";
-
-		//create marker options
-		var geojsonMarkerOptions = {
+    //create marker options
+		var markerOptions = {
 			radius: 8,
-			fillColor: "#cc0000",
-			color: "#cc0000",
+			fillColor: "#d71920",
+			color: "#d71920",
 			weight: 1,
 			opacity: 1,
 			fillOpacity: 0.8
 		};
 
-		//Example 1.2 line 13...create a Leaflet GeoJSON layer and add it to the map
+    //For each feature, determine its value for the selected attribute
+		if(typeof feature.properties[attribute] == "number"){
+				var attValue = Number(feature.properties[attribute]);
+		};
+
+    //Give each feature's circle marker a radius based on its attribute value
+    markerOptions.radius = calcPropRadius(attValue);
+
+    //create circle marker layer
+		if(radius > 0){
+				var layer L.circleMarker(latlng, markerOptions);
+		};
+
+    //build popup content string
+    var popupContent = "<p><b>Province:</b> " + feature.properties.Province + "</p><p><b>" + attribute + ":</b> " + feature.properties[attribute] + "</p>";
+
+    //bind the popup to the circle marker
+    layer.bindPopup(popupContent);
+
+    //return the circle marker to the L.geoJson pointToLayer option
+    return layer;
+};
+
+//Add circle markers for point features to the map
+function createPropSymbols(data, map){
+    //create a Leaflet GeoJSON layer and add it to the map
     L.geoJson(data, {
-				onEachFeature: onEachFeature,
-        pointToLayer: function (feature, latlng) {
-            //Step 5: For each feature, determine its value for the selected attribute
-						if(typeof feature.properties[attribute] == "number"){
-								var attValue = Number(feature.properties[attribute]);
-						}
-						//console.log(attValue);
-						//console.log(typeof attValue);
-
-            //examine the attribute value to check that it is correct
-            //console.log(feature.properties, attValue);
-
-						//Step 6: Give each feature's circle marker a radius based on its attribute value
-          	geojsonMarkerOptions.radius = calcPropRadius(attValue);
-
-            //create circle markers
-						if(radius > 0){
-								return L.circleMarker(latlng, geojsonMarkerOptions);
-						}
-        }
+        pointToLayer: pointToLayer
     }).addTo(map);
 };
 
-//function to retrieve the data and place it on the map
-function getData(){
-		//load the data
-		$.getJSON("data/canada-strikes.geojson", function(response){
-				//calculate minimum data value
-				//minValue = calcMinValue(response);
-				minValue = 1;
-				//call prop symbol function
-				createPropSymbols(response);
-		});
-};
+// //function to add circle markers for point features
+// function createPropSymbols(data){
+//
+// 		var attribute = "1901";
+//
+// 		//create marker options
+// 		var geojsonMarkerOptions = {
+// 			radius: 8,
+// 			fillColor: "#D71920",
+// 			color: "#D71920",
+// 			weight: 1,
+// 			opacity: 1,
+// 			fillOpacity: 0.8
+// 		};
+//
+// 		//Example 1.2 line 13...create a Leaflet GeoJSON layer and add it to the map
+//     L.geoJson(data, {
+// 				//onEachFeature: onEachFeature,	old way of doing popups
+//         pointToLayer: function (feature, latlng) {
+//             //Step 5: For each feature, determine its value for the selected attribute
+// 						if(typeof feature.properties[attribute] == "number"){
+// 								var attValue = Number(feature.properties[attribute]);
+// 						}
+//
+// 						//Step 6: Give each feature's circle marker a radius based on its attribute value
+//           	geojsonMarkerOptions.radius = calcPropRadius(attValue);
+//
+//             //create circle markers
+// 						if(radius > 0){
+// 								return L.circleMarker(latlng, geojsonMarkerOptions);
+// 						}
+//         }
+//     }).addTo(map);
+// };
+//
+// //function to retrieve the data and place it on the map
+// function getData(){
+// 		//load the data
+// 		$.getJSON("data/canada-strikes.geojson", function(response){
+// 				//calculate minimum data value
+// 				//minValue = calcMinValue(response);
+// 				minValue = 1;
+// 				//call prop symbol function
+// 				createPropSymbols(response);
+// 		});
+// };
 
-//function to attach popups to each mapped feature
-function onEachFeature(feature, layer) {
-    //no property named popupContent; instead, create html string with all properties
-    var popupContent = "";
-    if (feature.properties) {
-    	for (var property in feature.properties){
-    		popupContent += "<p>" + property + ": " + feature.properties[property] + "</p>";
-    	}
-        layer.bindPopup(popupContent);
-    };
-};
+// //old way of doing popups
+// function onEachFeature(feature, layer) {
+//     //no property named popupContent; instead, create html string with all properties
+//     var popupContent = "";
+//     if (feature.properties) {
+//     	for (var property in feature.properties){
+//     		popupContent += "<p>" + property + ": " + feature.properties[property] + "</p>";
+//     	}
+//         layer.bindPopup(popupContent);
+//     };
+// };
 
 $(document).ready(createMap);
