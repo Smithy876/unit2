@@ -9,10 +9,13 @@
 //Step 5. For each feature, determine its value for the selected attribute
 //Step 6. Give each feature's circle marker a radius based on its attribute value
 
+
+// variables that didn't want to play nice so they're in a time out up here
 var map;
 var minValue;
 var attValue;
 var radius;
+var layer;
 
 //function to instantiate the Leaflet map
 function createMap(){
@@ -23,7 +26,7 @@ function createMap(){
 		minZoom: 4,
 		maxZoom: 5,
 		dragging: false,
-		//maxBounds: L.latLngBounds()
+		//maxBounds: L.latLngBounds() //working on this one
 	});
 
 	//add OSM base tilelayer
@@ -38,6 +41,7 @@ function createMap(){
 	getData(map);
 };
 
+//  Calculating the minimum value - not really necessary for this dataset
 // function calcMinValue(data){
 //
 //     //create empty array to store all data values
@@ -70,7 +74,9 @@ function calcPropRadius(attValue) {
 
     //constant factor adjusts symbol sizes evenly
     var minRadius = 5;
-		//console.log(attValue);
+
+		//calculate minimum data value
+		//minValue = calcMinValue(response);
 		minValue = 1;
     //Flannery Appearance Compensation formula
 
@@ -100,7 +106,7 @@ function pointToLayer(feature, latlng){
 
     //For each feature, determine its value for the selected attribute
 		if(typeof feature.properties[attribute] == "number"){
-				var attValue = Number(feature.properties[attribute]);
+				attValue = Number(feature.properties[attribute]);
 		};
 
     //Give each feature's circle marker a radius based on its attribute value
@@ -108,7 +114,7 @@ function pointToLayer(feature, latlng){
 
     //create circle marker layer
 		if(radius > 0){
-				var layer L.circleMarker(latlng, markerOptions);
+				layer = L.circleMarker(latlng, markerOptions);
 		};
 
     //build popup content string
@@ -124,12 +130,12 @@ function pointToLayer(feature, latlng){
 //Add circle markers for point features to the map
 function createPropSymbols(data, map){
     //create a Leaflet GeoJSON layer and add it to the map
-    L.geoJson(data, {
+		L.geoJson(data, {
         pointToLayer: pointToLayer
     }).addTo(map);
 };
 
-// //function to add circle markers for point features
+// //old function to add circle markers for point features
 // function createPropSymbols(data){
 //
 // 		var attribute = "1901";
@@ -164,17 +170,15 @@ function createPropSymbols(data, map){
 //     }).addTo(map);
 // };
 //
-// //function to retrieve the data and place it on the map
-// function getData(){
-// 		//load the data
-// 		$.getJSON("data/canada-strikes.geojson", function(response){
-// 				//calculate minimum data value
-// 				//minValue = calcMinValue(response);
-// 				minValue = 1;
-// 				//call prop symbol function
-// 				createPropSymbols(response);
-// 		});
-// };
+
+//function to retrieve the data and place it on the map
+function getData(){
+		//load the data
+		$.getJSON("data/canada-strikes.geojson", function(response){
+				//call prop symbol function
+				createPropSymbols(response);
+		});
+};
 
 // //old way of doing popups
 // function onEachFeature(feature, layer) {
