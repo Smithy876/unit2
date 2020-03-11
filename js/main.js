@@ -16,6 +16,7 @@ var minValue;
 var attValue;
 var radius;
 var layer;
+var attributes;
 
 //function to instantiate the Leaflet map
 function createMap(){
@@ -41,7 +42,7 @@ function createMap(){
 	getData(map);
 };
 
-// // Calculating the minimum value - not really necessary for this dataset
+// Calculating the minimum value - not really necessary for this dataset
 // function calcMinValue(data){
 //
 //     //create empty array to store all data values
@@ -69,6 +70,29 @@ function createMap(){
 //     return minValue;
 // }
 
+//Step 3: build an attributes array from the data
+function processData(data){
+    //empty array to hold attributes
+    attributes = [];
+
+    //properties of the first feature in the dataset
+    var properties = data.features[0].properties;
+
+    //push each attribute name into attributes array
+    for (var attribute in properties){
+        //only take attributes with population values
+        if (attribute.indexOf("19") > -1){
+            attributes.push(attribute);
+        };
+    };
+
+    //check result
+    //console.log(attributes);
+		//console.log(attributes[0]);
+
+    return attributes;
+};
+
 //calculate the radius of each proportional symbol
 function calcPropRadius(attValue) {
 
@@ -90,9 +114,14 @@ function calcPropRadius(attValue) {
 };
 
 //function to convert markers to circle markers
-function pointToLayer(feature, latlng){
+function pointToLayer(feature, latlng, attributes){ //changing the order here makes attributes become an object, but its contents are still undefined
     //Determine which attribute to visualize with proportional symbols
-    var attribute = "1901";
+		console.log(typeof attributes);
+		console.log(attributes[0]);
+
+		var attribute = attributes[0];
+		//check
+		console.log(attribute);
 
     //create marker options
 		var markerOptions = {
@@ -119,6 +148,7 @@ function pointToLayer(feature, latlng){
 
     //build popup content string
 		var popupContent = "<h3><b>" + feature.properties.Province + "</b></h3><p><b>" + attribute + ":</b> " + feature.properties[attribute] + "</p>";
+		//some provinces are being mislabeled when there are 0 value provinces
 
     //bind the popup to the circle marker
     layer.bindPopup(popupContent, {
@@ -131,10 +161,12 @@ function pointToLayer(feature, latlng){
 };
 
 //Add circle markers for point features to the map
-function createPropSymbols(data, layer){
+function createPropSymbols(data, map, attributes){
     //create a Leaflet GeoJSON layer and add it to the map
 		L.geoJson(data, {
-        pointToLayer: pointToLayer
+        pointToLayer: function(feature, latlng){
+						return pointToLayer(feature, latlng, attributes);
+				}
     }).addTo(map);
 };
 
@@ -174,12 +206,36 @@ function createPropSymbols(data, layer){
 // };
 //
 
+//Step 1: Create new sequence controls
+function createSequenceControls(){
+    //create range input element (slider)
+		$('#panel').append('<input class="range-slider" type="range">');
+
+    //set slider attributes
+    $('.range-slider').attr({
+        max: 49,
+        min: 0,
+        value: 0,
+        step: 1
+    });
+
+		//add step buttons
+		$('#panel').append('<button class="step" id="reverse">Reverse</button>');
+		$('#panel').append('<button class="step" id="forward">Forward</button>');
+
+		$('#reverse').html('<img src="img/reverse.png">');
+    $('#forward').html('<img src="img/forward.png">');
+
+};
+
 //function to retrieve the data and place it on the map
 function getData(){
 		//load the data
 		$.getJSON("data/canada-strikes.geojson", function(response){
-				//call prop symbol function
+				//call relevant functions
+				processData(response);
 				createPropSymbols(response);
+				createSequenceControls();
 		});
 };
 
