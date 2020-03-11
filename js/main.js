@@ -41,7 +41,7 @@ function createMap(){
 	getData(map);
 };
 
-//  Calculating the minimum value - not really necessary for this dataset
+// // Calculating the minimum value - not really necessary for this dataset
 // function calcMinValue(data){
 //
 //     //create empty array to store all data values
@@ -78,8 +78,8 @@ function calcPropRadius(attValue) {
 		//calculate minimum data value
 		//minValue = calcMinValue(response);
 		minValue = 1;
-    //Flannery Appearance Compensation formula
 
+    //Flannery Appearance Compensation formula
     if(typeof (1.0083 * Math.pow(attValue/minValue,0.5715) * minRadius) == "number"){
 				radius = 1.0083 * Math.pow(attValue/minValue,0.5715) * minRadius;
 		}
@@ -118,17 +118,20 @@ function pointToLayer(feature, latlng){
 		};
 
     //build popup content string
-    var popupContent = "<p><b>Province:</b> " + feature.properties.Province + "</p><p><b>" + attribute + ":</b> " + feature.properties[attribute] + "</p>";
+		var popupContent = "<h3><b>" + feature.properties.Province + "</b></h3><p><b>" + attribute + ":</b> " + feature.properties[attribute] + "</p>";
 
     //bind the popup to the circle marker
-    layer.bindPopup(popupContent);
+    layer.bindPopup(popupContent, {
+				offset: new L.Point(0,-markerOptions.radius)
+
+		});
 
     //return the circle marker to the L.geoJson pointToLayer option
     return layer;
 };
 
 //Add circle markers for point features to the map
-function createPropSymbols(data, map){
+function createPropSymbols(data, layer){
     //create a Leaflet GeoJSON layer and add it to the map
 		L.geoJson(data, {
         pointToLayer: pointToLayer

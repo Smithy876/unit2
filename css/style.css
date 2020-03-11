@@ -1,1 +1,14 @@
 #mapid { height: 480px; }
+
+h3 {
+    font-size: 16pt;
+    line-height: .4em;
+    letter-spacing: 1.5px;
+    font-family: "staatliches", "sans serif";
+}
+
+.leaflet-popup-content p {
+    font-size: 12pt;
+    line-height: 0em;
+    font-family: "open sans", "sans serif";
+}
