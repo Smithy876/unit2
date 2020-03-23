@@ -70,7 +70,7 @@ function createMap(){
 //     return minValue;
 // }
 
-//Step 3: build an attributes array from the data
+//Build an attributes array from the data
 function processData(data){
     //empty array to hold attributes
     attributes = [];
@@ -80,15 +80,16 @@ function processData(data){
 
     //push each attribute name into attributes array
     for (var attribute in properties){
-        //only take attributes with population values
+        //only take attributes with values
         if (attribute.indexOf("19") > -1){
             attributes.push(attribute);
         };
     };
 
     //check result
-    //console.log(attributes);
+		//console.log(attributes);
 		//console.log(attributes[0]);
+		var attribute = attributes[0];
 
     return attributes;
 };
@@ -116,12 +117,12 @@ function calcPropRadius(attValue) {
 //function to convert markers to circle markers
 function pointToLayer(feature, latlng, attributes){ //changing the order here makes attributes become an object, but its contents are still undefined
     //Determine which attribute to visualize with proportional symbols
-		console.log(typeof attributes);
-		console.log(attributes[0]);
+		//console.log(typeof attributes);
+		//console.log(attributes[0]);
 
 		var attribute = attributes[0];
 		//check
-		console.log(attribute);
+		//console.log(attribute);
 
     //create marker options
 		var markerOptions = {
@@ -146,14 +147,14 @@ function pointToLayer(feature, latlng, attributes){ //changing the order here ma
 				layer = L.circleMarker(latlng, markerOptions);
 		};
 
+
     //build popup content string
-		var popupContent = "<h3><b>" + feature.properties.Province + "</b></h3><p><b>" + attribute + ":</b> " + feature.properties[attribute] + "</p>";
+		var popupContent = "<h3><b>" + feature.properties.Province + "</b></h3><p><b>" + attribute + ":</b> " + feature.properties[attribute] + " strikes</p>";
 		//some provinces are being mislabeled when there are 0 value provinces
 
     //bind the popup to the circle marker
     layer.bindPopup(popupContent, {
 				offset: new L.Point(0,-markerOptions.radius)
-
 		});
 
     //return the circle marker to the L.geoJson pointToLayer option
@@ -163,6 +164,8 @@ function pointToLayer(feature, latlng, attributes){ //changing the order here ma
 //Add circle markers for point features to the map
 function createPropSymbols(data, map, attributes){
     //create a Leaflet GeoJSON layer and add it to the map
+		//console.log(attributes);
+
 		L.geoJson(data, {
         pointToLayer: function(feature, latlng){
 						return pointToLayer(feature, latlng, attributes);
@@ -204,9 +207,37 @@ function createPropSymbols(data, map, attributes){
 //         }
 //     }).addTo(map);
 // };
-//
 
-//Step 1: Create new sequence controls
+
+//Step 10: Resize proportional symbols according to new attribute values
+function updatePropSymbols(attribute){
+    map.eachLayer(function(layer){
+			if (layer.feature && layer.feature.properties[attribute]){
+					//access feature properties
+					var props = layer.feature.properties;
+
+					//update each feature's radius based on new attribute values
+					var radius = calcPropRadius(props[attribute]);
+					layer.setRadius(radius);
+
+					//add city to popup content string
+					var popupContent = "<h3><b>" + props.Province + "</b></h3>";
+					console.log(props);
+					//add formatted attribute to panel content string
+					var year = attribute;
+					popupContent += "<p><b>" + year + ":</b> " + props[attribute] + " strikes</p>";
+
+					//var popupContent = "<h3><b>" + feature.properties.Province + "</b></h3><p><b>" + attribute + ":</b> " + feature.properties[attribute] + " strikes</p>";
+
+					//update popup content
+					popup = layer.getPopup();
+					popup.setContent(popupContent).update();
+				};
+    });
+};
+
+
+//Create sequence controls
 function createSequenceControls(){
     //create range input element (slider)
 		$('#panel').append('<input class="range-slider" type="range">');
@@ -226,6 +257,38 @@ function createSequenceControls(){
 		$('#reverse').html('<img src="img/reverse.png">');
     $('#forward').html('<img src="img/forward.png">');
 
+		//click listener for buttons
+		$('.step').click(function(){
+				//get the old index value
+				var index = $('.range-slider').val();
+
+				//increment or decrement depending on button clicked
+				if ($(this).attr('id') == 'forward'){
+						index++;
+						//if past the last attribute, wrap around to first attribute
+						index = index > 50 ? 0 : index;
+				} else if ($(this).attr('id') == 'reverse'){
+						index--;
+						//if past the first attribute, wrap around to last attribute
+						index = index < 0 ? 50 : index;
+				};
+
+				//update slider
+				$('.range-slider').val(index);
+
+				//Called in both step button and slider event listener handlers
+        //pass new attribute to update symbols
+        updatePropSymbols(attributes[index]);
+		});
+
+		//input listener for slider
+		$('.range-slider').on('input', function(){
+				//get the new index value
+				var index = $(this).val();
+				//Called in both step button and slider event listener handlers
+				//pass new attribute to update symbols
+				updatePropSymbols(attributes[index]);
+		});
 };
 
 //function to retrieve the data and place it on the map
@@ -234,7 +297,7 @@ function getData(){
 		$.getJSON("data/canada-strikes.geojson", function(response){
 				//call relevant functions
 				processData(response);
-				createPropSymbols(response);
+				createPropSymbols(response, map, attributes);
 				createSequenceControls();
 		});
 };
