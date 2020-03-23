@@ -212,7 +212,7 @@ function createPropSymbols(data, map, attributes){
 // };
 
 
-//Step 10: Resize proportional symbols according to new attribute values
+//Resize proportional symbols according to new attribute values
 function updatePropSymbols(attribute){
     map.eachLayer(function(layer){
 			if (layer.feature && layer.feature.properties[attribute]){
@@ -223,19 +223,20 @@ function updatePropSymbols(attribute){
 					var radius = calcPropRadius(props[attribute]);
 					layer.setRadius(radius);
 
-					//add city to popup content string
+					//provinces with 0 strikes are not getting updated and instead keep the last size they had before entering a 0 strike year
+
+					//add province to popup content string
 					var popupContent = "<h3><b>" + props.Province + "</b></h3>";
 
 					//add formatted attribute to panel content string
-					var year = attribute;
-					popupContent += "<p><b>" + year + ":</b> " + props[attribute] + " strikes</p>";
+					popupContent += "<p><b>" + attribute + ":</b> " + props[attribute] + " strikes</p>";
 
 					//var popupContent = "<h3><b>" + feature.properties.Province + "</b></h3><p><b>" + attribute + ":</b> " + feature.properties[attribute] + " strikes</p>";
 
 					//update popup content
 					popup = layer.getPopup();
 					popup.setContent(popupContent).update();
-					console.log(year);
+					console.log(attribute);
 				};
     });
 };
