@@ -143,10 +143,13 @@ function pointToLayer(feature, latlng, attributes){ //changing the order here ma
     markerOptions.radius = calcPropRadius(attValue);
 
     //create circle marker layer
-		if(radius > 0){
-				layer = L.circleMarker(latlng, markerOptions);
-		};
+		//if(radius > 0){
+		layer = L.circleMarker(latlng, markerOptions);
+		//};
 
+		// if(radius > 0){
+		// 		var popupContent = "<h3><b>" + feature.properties.Province + "</b></h3><p><b>" + attribute + ":</b> No strikes</p>";
+		// };
 
     //build popup content string
 		var popupContent = "<h3><b>" + feature.properties.Province + "</b></h3><p><b>" + attribute + ":</b> " + feature.properties[attribute] + " strikes</p>";
@@ -222,7 +225,7 @@ function updatePropSymbols(attribute){
 
 					//add city to popup content string
 					var popupContent = "<h3><b>" + props.Province + "</b></h3>";
-					console.log(props);
+
 					//add formatted attribute to panel content string
 					var year = attribute;
 					popupContent += "<p><b>" + year + ":</b> " + props[attribute] + " strikes</p>";
@@ -232,6 +235,7 @@ function updatePropSymbols(attribute){
 					//update popup content
 					popup = layer.getPopup();
 					popup.setContent(popupContent).update();
+					console.log(year);
 				};
     });
 };
@@ -266,11 +270,11 @@ function createSequenceControls(){
 				if ($(this).attr('id') == 'forward'){
 						index++;
 						//if past the last attribute, wrap around to first attribute
-						index = index > 50 ? 0 : index;
+						//index = index > 50 ? 0 : index;
 				} else if ($(this).attr('id') == 'reverse'){
 						index--;
 						//if past the first attribute, wrap around to last attribute
-						index = index < 0 ? 50 : index;
+						//index = index < 0 ? 50 : index;
 				};
 
 				//update slider
